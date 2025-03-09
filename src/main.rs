@@ -1,18 +1,43 @@
-use crossterm::event::{self, Event};
-use ratatui::{text::Text, Frame};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use ratatui::{
+    text::Text,
+    Frame,
+    widgets::Block,
+    DefaultTerminal
+};
 
-fn main() {
-    let mut terminal = ratatui::init();
-    loop {
-        terminal.draw(draw).expect("Failed to draw frame");
-        if matches!(event::read().expect("Failed to read event"), Event::Key(_)) {
-            break;
-        }
-    }
+fn main() -> std::io::Result<()> {
+    let terminal = ratatui::init();
+    let result = run(terminal);
+
     ratatui::restore();
+
+    result
+}
+
+
+fn run(mut terminal: DefaultTerminal) -> std::io::Result<()> {
+    loop {
+        terminal.draw(draw);
+        handle_events();
+        }
 }
 
 fn draw(frame: &mut Frame) {
-    let text = Text::raw("Hello world");
-    frame.render_widget(text, frame.area());
+    let block = Block::new().title("Title");
+    frame.render_widget(block, frame.area());
+}
+
+
+fn handle_events() -> std::io::Result<bool> {
+    match event::read()? {
+        Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
+            KeyCode::Char('q') => return Ok(true),
+            // handle other key events
+            _ => {}
+        },
+        // handle other events
+        _ => {}
+    }
+    Ok(false)
 }
